@@ -1,0 +1,205 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   Theme CSS Variables
+   ======================================== */
+
+/* Dark theme (default) */
+:root, .dark {
+  --editor-bg: #1e1e1e;
+  --editor-sidebar: #252526;
+  --editor-active: #37373d;
+  --editor-border: #3c3c3c;
+  --editor-text: #cccccc;
+  --editor-accent: #0e639c;
+}
+
+/* Light theme */
+.light {
+  --editor-bg: #ffffff;
+  --editor-sidebar: #f3f3f3;
+  --editor-active: #e4e4e4;
+  --editor-border: #d4d4d4;
+  --editor-text: #1f1f1f;
+  --editor-accent: #0066cc;
+}
+
+/* ========================================
+   Scrollbar styling
+   ======================================== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+/* Light mode scrollbar */
+.light ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* ========================================
+   CodeMirror customization
+   ======================================== */
+.cm-editor {
+  height: 100%;
+  font-size: 14px;
+}
+
+.cm-editor .cm-scroller {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.cm-editor.cm-focused {
+  outline: none;
+}
+
+/* Dark theme editor */
+.dark .cm-editor {
+  background-color: #1e1e1e;
+}
+
+.dark .cm-gutters {
+  background-color: #1e1e1e;
+  border-right: 1px solid #3c3c3c;
+}
+
+/* Light theme editor */
+.light .cm-editor {
+  background-color: #ffffff;
+}
+
+.light .cm-gutters {
+  background-color: #f5f5f5;
+  border-right: 1px solid #e0e0e0;
+}
+
+.light .cm-content {
+  color: #1f1f1f;
+}
+
+.light .cm-activeLine {
+  background-color: #f0f0f0 !important;
+}
+
+.light .cm-activeLineGutter {
+  background-color: #e8e8e8 !important;
+}
+
+.light .cm-lineNumbers .cm-gutterElement {
+  color: #6e7681;
+}
+
+/* Remove ALL underlines from CodeMirror editor */
+.cm-editor * {
+  text-decoration: none !important;
+}
+
+.cm-editor .cm-line * {
+  text-decoration: none !important;
+}
+
+.cm-editor span {
+  text-decoration: none !important;
+}
+
+
+/* ========================================
+   App region for macOS title bar
+   ======================================== */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* ========================================
+   Selection
+   ======================================== */
+::selection {
+  background-color: rgba(14, 99, 156, 0.5);
+}
+
+.light ::selection {
+  background-color: rgba(0, 102, 204, 0.3);
+}
+
+/* ========================================
+   Force Light Theme Colors on All Elements
+   ======================================== */
+.light .bg-editor-bg {
+  background-color: #ffffff !important;
+}
+
+.light .bg-editor-sidebar {
+  background-color: #f3f3f3 !important;
+}
+
+.light .bg-editor-active {
+  background-color: #e4e4e4 !important;
+}
+
+.light .border-editor-border {
+  border-color: #d4d4d4 !important;
+}
+
+.light .text-editor-text {
+  color: #1f1f1f !important;
+}
+
+.light .text-editor-text\/50 {
+  color: rgba(31, 31, 31, 0.5) !important;
+}
+
+.light .text-editor-text\/70 {
+  color: rgba(31, 31, 31, 0.7) !important;
+}
+
+.light .hover\:bg-editor-active:hover {
+  background-color: #e4e4e4 !important;
+}
+
+.light .border-t-editor-accent {
+  border-top-color: #0066cc !important;
+}
+
+.light .bg-editor-accent {
+  background-color: #0066cc !important;
+}

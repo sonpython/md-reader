@@ -1,0 +1,60 @@
+{
+  "appId": "com.mdreader.app",
+  "productName": "MD Reader",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*"
+  ],
+  "fileAssociations": [
+    {
+      "ext": "md",
+      "name": "Markdown Document",
+      "description": "Markdown Document",
+      "mimeType": "text/markdown",
+      "role": "Editor",
+      "icon": "public/icon.icns"
+    },
+    {
+      "ext": "markdown",
+      "name": "Markdown Document",
+      "description": "Markdown Document",
+      "mimeType": "text/markdown",
+      "role": "Editor",
+      "icon": "public/icon.icns"
+    },
+    {
+      "ext": "mdown",
+      "name": "Markdown Document",
+      "description": "Markdown Document",
+      "mimeType": "text/markdown",
+      "role": "Editor",
+      "icon": "public/icon.icns"
+    },
+    {
+      "ext": "mkd",
+      "name": "Markdown Document",
+      "description": "Markdown Document",
+      "mimeType": "text/markdown",
+      "role": "Editor",
+      "icon": "public/icon.icns"
+    }
+  ],
+  "mac": {
+    "target": ["dmg", "zip"],
+    "icon": "public/icon.icns",
+    "category": "public.app-category.developer-tools"
+  },
+  "win": {
+    "target": ["nsis", "zip"],
+    "icon": "public/icon.ico"
+  },
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "icon": "public/icon.png",
+    "category": "Development",
+    "mimeTypes": ["text/markdown", "text/x-markdown"]
+  }
+}
