@@ -3,8 +3,24 @@ import { useFileSystem } from '../../hooks/useFileSystem'
 import clsx from 'clsx'
 
 export const Header = () => {
-  const { sidebarOpen, previewOpen, theme, autoSaveEnabled, toggleSidebar, togglePreview, toggleTheme, toggleAutoSave } = useEditorStore()
+  const { sidebarOpen, previewOpen, theme, autoSaveEnabled, currentFolder, tabs, toggleSidebar, togglePreview, toggleTheme, toggleAutoSave, setFileTree, reloadTabContent } = useEditorStore()
   const { newFile, openFile, openFolder, saveFile } = useFileSystem()
+
+  // Force refresh: reload folder tree + reload all open file contents
+  const handleRefresh = async () => {
+    if (currentFolder) {
+      const tree = await window.electron.readDirectory(currentFolder)
+      setFileTree(tree)
+    }
+    for (const tab of tabs) {
+      if (tab.filePath && !tab.isModified) {
+        const result = await window.electron.readFile(tab.filePath)
+        if (result.success && result.content !== undefined) {
+          reloadTabContent(tab.filePath, result.content)
+        }
+      }
+    }
+  }
 
   return (
     <header className="h-10 bg-editor-sidebar border-b border-editor-border flex items-center justify-between px-4 pl-20 select-none app-drag">
@@ -82,6 +98,16 @@ export const Header = () => {
         </button>
 
         <div className="h-4 w-px bg-editor-border mx-1" />
+
+        <button
+          onClick={handleRefresh}
+          className="p-1.5 rounded hover:bg-editor-active transition-colors"
+          title="Refresh folder tree & file contents"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
 
         <button
           onClick={togglePreview}
