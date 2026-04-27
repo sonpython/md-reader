@@ -18,6 +18,7 @@ export interface EditorState {
   activeTabId: string | null
   sidebarOpen: boolean
   previewOpen: boolean
+  editorOpen: boolean
   theme: 'light' | 'dark'
   currentFolder: string | null
   fileTree: FileNode[]

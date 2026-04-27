@@ -36,6 +36,7 @@ interface EditorActions {
   // UI actions
   toggleSidebar: () => void
   togglePreview: () => void
+  toggleEditor: () => void
   toggleTheme: () => void
   toggleSearch: () => void
   toggleAutoSave: () => void
@@ -61,6 +62,7 @@ export const useEditorStore = create<EditorState & EditorActions>((set, get) => 
   activeTabId: null,
   sidebarOpen: true,
   previewOpen: true,
+  editorOpen: true,
   theme: persisted.theme,
   currentFolder: null,
   fileTree: [],
@@ -136,7 +138,16 @@ export const useEditorStore = create<EditorState & EditorActions>((set, get) => 
 
   // UI actions
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  togglePreview: () => set((state) => ({ previewOpen: !state.previewOpen })),
+  togglePreview: () => set((state) => {
+    // Guard: prevent both panels from being closed
+    if (state.previewOpen && !state.editorOpen) return state
+    return { previewOpen: !state.previewOpen }
+  }),
+  toggleEditor: () => set((state) => {
+    // Guard: prevent both panels from being closed
+    if (state.editorOpen && !state.previewOpen) return state
+    return { editorOpen: !state.editorOpen }
+  }),
   toggleTheme: () => {
     set((state) => {
       const newTheme = state.theme === 'dark' ? 'light' : 'dark'

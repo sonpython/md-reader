@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { useEditorStore } from './store/editorStore'
 import { useMenuEvents } from './hooks/useMenuEvents'
 import { useAutoSave } from './hooks/useAutoSave'
@@ -12,61 +13,82 @@ import { SearchReplace } from './components/Editor/SearchReplace'
 import { MarkdownPreview } from './components/Preview/MarkdownPreview'
 import clsx from 'clsx'
 
+// Vertical resize handle: 1px line that highlights on hover/drag
+const RESIZE_HANDLE_CLASS = clsx(
+  'w-px bg-editor-border transition-all relative',
+  'hover:bg-editor-accent hover:w-0.5',
+  'data-[resize-handle-state=drag]:bg-editor-accent data-[resize-handle-state=drag]:w-0.5'
+)
+
 function App() {
-  const { sidebarOpen, previewOpen } = useEditorStore()
+  const { sidebarOpen, previewOpen, editorOpen } = useEditorStore()
   const [explorerCollapsed, setExplorerCollapsed] = useState(false)
 
   useMenuEvents()
   useAutoSave()
   useFileWatcher()
 
+  const sidebarResizable = sidebarOpen && !explorerCollapsed
+
   return (
     <div className="h-screen flex flex-col bg-editor-bg text-editor-text overflow-hidden">
       <Header />
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        {sidebarOpen && (
-          <aside
-            className={clsx(
-              'bg-editor-sidebar border-r border-editor-border transition-all duration-200 overflow-hidden flex flex-col',
-              explorerCollapsed ? 'w-10' : 'w-64'
-            )}
-          >
+        {/* Collapsed sidebar: fixed-width, rendered outside PanelGroup */}
+        {sidebarOpen && explorerCollapsed && (
+          <aside className="w-10 bg-editor-sidebar border-r border-editor-border overflow-hidden flex flex-col">
             <FileExplorer
-              isCollapsed={explorerCollapsed}
-              onToggleCollapse={() => setExplorerCollapsed(!explorerCollapsed)}
+              isCollapsed
+              onToggleCollapse={() => setExplorerCollapsed(false)}
             />
           </aside>
         )}
 
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <TabBar />
-          <SearchReplace />
+        <PanelGroup direction="horizontal" autoSaveId="md-reader-main-v1" className="flex-1">
+          {sidebarResizable && (
+            <>
+              <Panel id="sidebar" order={1} defaultSize={20} minSize={12} maxSize={40}>
+                <aside className="h-full bg-editor-sidebar border-r border-editor-border overflow-hidden flex flex-col">
+                  <FileExplorer
+                    isCollapsed={false}
+                    onToggleCollapse={() => setExplorerCollapsed(true)}
+                  />
+                </aside>
+              </Panel>
+              <PanelResizeHandle className={RESIZE_HANDLE_CLASS} />
+            </>
+          )}
 
-          <div className="flex-1 flex overflow-hidden">
-            {/* Editor */}
-            <div
-              className={clsx(
-                'overflow-hidden transition-all duration-200',
-                previewOpen ? 'w-1/2' : 'w-full'
-              )}
-            >
-              <MarkdownEditor />
-            </div>
+          <Panel id="main" order={2}>
+            <main className="h-full flex flex-col overflow-hidden">
+              <TabBar />
+              <SearchReplace />
 
-            {/* Preview */}
-            {previewOpen && (
-              <>
-                <div className="w-px bg-editor-border" />
-                <div className="w-1/2 overflow-hidden bg-editor-sidebar">
-                  <MarkdownPreview />
-                </div>
-              </>
-            )}
-          </div>
-        </main>
+              <div className="flex-1 overflow-hidden">
+                <PanelGroup direction="horizontal" autoSaveId="md-reader-content-v1">
+                  {editorOpen && (
+                    <Panel id="editor" order={1} minSize={20}>
+                      <div className="h-full overflow-hidden">
+                        <MarkdownEditor />
+                      </div>
+                    </Panel>
+                  )}
+                  {editorOpen && previewOpen && (
+                    <PanelResizeHandle className={RESIZE_HANDLE_CLASS} />
+                  )}
+                  {previewOpen && (
+                    <Panel id="preview" order={2} minSize={20}>
+                      <div className="h-full overflow-hidden bg-editor-sidebar">
+                        <MarkdownPreview />
+                      </div>
+                    </Panel>
+                  )}
+                </PanelGroup>
+              </div>
+            </main>
+          </Panel>
+        </PanelGroup>
       </div>
 
       <StatusBar />
