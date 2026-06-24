@@ -9,7 +9,8 @@ export const useAutoSave = () => {
     if (!autoSaveEnabled || !activeTabId) return
 
     const activeTab = tabs.find(t => t.id === activeTabId)
-    if (!activeTab || !activeTab.filePath || !activeTab.isModified) return
+    // PDF tabs are read-only — never auto-save
+    if (!activeTab || activeTab.type === 'pdf' || !activeTab.filePath || !activeTab.isModified) return
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)

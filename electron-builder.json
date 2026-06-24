@@ -40,6 +40,14 @@
       "mimeType": "text/markdown",
       "role": "Editor",
       "icon": "public/icon.icns"
+    },
+    {
+      "ext": "pdf",
+      "name": "PDF Document",
+      "description": "PDF Document",
+      "mimeType": "application/pdf",
+      "role": "Viewer",
+      "icon": "public/icon.icns"
     }
   ],
   "mac": {

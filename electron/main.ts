@@ -1,10 +1,21 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, protocol } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { initFileWatcher, startFolderWatcher, watchFile, unwatchFile, markSavedByApp, cleanup as cleanupWatchers } from './file-watcher'
 
 let mainWindow: BrowserWindow | null = null
 let fileToOpen: string | null = null
+
+// Register a privileged scheme that streams local PDF bytes to the renderer's native
+// pdfium viewer. A custom scheme works in both dev (http parent) and prod (file parent),
+// unlike file:// which would be cross-origin-blocked from the http dev server.
+// Must run before app is ready.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app-pdf',
+    privileges: { standard: true, secure: true, stream: true, supportFetchAPI: true }
+  }
+])
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -15,7 +26,9 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      // Enable Chromium's built-in pdfium viewer for embedded PDF iframes
+      plugins: true
     },
     titleBarStyle: 'hiddenInset',
     frame: process.platform === 'darwin' ? true : true
@@ -164,7 +177,9 @@ ipcMain.handle('file:open-dialog', async () => {
   const result = await dialog.showOpenDialog(mainWindow!, {
     properties: ['openFile'],
     filters: [
+      { name: 'Supported', extensions: ['md', 'markdown', 'txt', 'pdf'] },
       { name: 'Markdown', extensions: ['md', 'markdown', 'txt'] },
+      { name: 'PDF', extensions: ['pdf'] },
       { name: 'All Files', extensions: ['*'] }
     ]
   })
@@ -174,6 +189,10 @@ ipcMain.handle('file:open-dialog', async () => {
   }
 
   const filePath = result.filePaths[0]
+  // PDFs are binary — don't read as UTF-8 text; the renderer opens them in the native viewer
+  if (/\.pdf$/i.test(filePath)) {
+    return { path: filePath, content: '' }
+  }
   const content = fs.readFileSync(filePath, 'utf-8')
   return { path: filePath, content }
 })
@@ -329,25 +348,54 @@ app.on('open-file', (event, filePath) => {
 
 // Handle file open from command line arguments (Windows/Linux)
 const handleCommandLineArgs = (argv: string[]) => {
-  // Find .md file in arguments
-  const mdFile = argv.find(arg =>
+  // Find an openable file (markdown or PDF) in arguments
+  const fileArg = argv.find(arg =>
     arg.endsWith('.md') ||
     arg.endsWith('.markdown') ||
     arg.endsWith('.mdown') ||
-    arg.endsWith('.mkd')
+    arg.endsWith('.mkd') ||
+    arg.endsWith('.pdf')
   )
 
-  if (mdFile && fs.existsSync(mdFile)) {
+  if (fileArg && fs.existsSync(fileArg)) {
     if (mainWindow) {
-      mainWindow.webContents.send('file:open-from-os', mdFile)
+      mainWindow.webContents.send('file:open-from-os', fileArg)
       mainWindow.focus()
     } else {
-      fileToOpen = mdFile
+      fileToOpen = fileArg
     }
   }
 }
 
 app.whenReady().then(() => {
+  // Serve local PDFs to the embedded native viewer via app-pdf://open?path=<absolute-path>.
+  // Path is normalized and validated so only existing regular files are served.
+  protocol.handle('app-pdf', async (request) => {
+    try {
+      const url = new URL(request.url)
+      // Only serve the dedicated host; reject anything else
+      if (url.host !== 'open') return new Response('Forbidden', { status: 403 })
+
+      const rawPath = decodeURIComponent(url.searchParams.get('path') || '')
+      // Only ever serve PDFs — do not let this become an arbitrary local-file reader
+      if (!rawPath || !/\.pdf$/i.test(rawPath)) return new Response('Forbidden', { status: 403 })
+      if (!fs.existsSync(rawPath) || !fs.statSync(rawPath).isFile()) {
+        return new Response('Not found', { status: 404 })
+      }
+      // Resolve symlinks and re-check the extension on the real target
+      const realPath = fs.realpathSync(rawPath)
+      if (!/\.pdf$/i.test(realPath)) return new Response('Forbidden', { status: 403 })
+
+      const data = await fs.promises.readFile(realPath)
+      return new Response(new Uint8Array(data), {
+        headers: { 'Content-Type': 'application/pdf' }
+      })
+    } catch {
+      // Don't echo internal error detail back to the renderer
+      return new Response('Internal error', { status: 500 })
+    }
+  })
+
   createWindow()
 
   // Check command line arguments

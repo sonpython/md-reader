@@ -11,6 +11,11 @@ export interface Tab {
   fileName: string
   content: string
   isModified: boolean
+  // 'pdf' tabs bypass the text pipeline (editor/preview/save/watch); 'markdown' is the default.
+  // Required so every code path branches explicitly. NOTE: if tab persistence/restore is ever
+  // added, restored tabs must set `type` (or derive it from the .pdf extension) — an undefined
+  // type would be treated as markdown and become save-eligible.
+  type: 'markdown' | 'pdf'
 }
 
 export interface EditorState {

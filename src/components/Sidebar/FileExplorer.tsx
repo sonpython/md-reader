@@ -9,23 +9,26 @@ interface FileExplorerProps {
   onToggleCollapse: () => void
 }
 
-// Check if a file is markdown
-const isMarkdownFile = (name: string) => /\.(md|markdown)$/i.test(name)
+// Check if a file is a supported, openable file (markdown or PDF)
+const isSupportedFile = (name: string) => /\.(md|markdown|pdf)$/i.test(name)
 
-// Check if directory contains any markdown files (recursively)
-const hasMarkdownFiles = (node: FileNode): boolean => {
-  if (!node.isDirectory) return isMarkdownFile(node.name)
+// Check if a file is a PDF (drives the icon choice)
+const isPdfFile = (name: string) => /\.pdf$/i.test(name)
+
+// Check if directory contains any supported files (recursively)
+const hasSupportedFiles = (node: FileNode): boolean => {
+  if (!node.isDirectory) return isSupportedFile(node.name)
   if (!node.children) return false
-  return node.children.some(child => hasMarkdownFiles(child))
+  return node.children.some(child => hasSupportedFiles(child))
 }
 
-// Filter and sort tree: only MD files and folders containing MD files
+// Filter and sort tree: only supported files and folders containing them
 // Files first, then folders, both sorted alphabetically
 const filterAndSortTree = (nodes: FileNode[]): FileNode[] => {
   const filtered = nodes
     .filter(node => {
-      if (!node.isDirectory) return isMarkdownFile(node.name)
-      return hasMarkdownFiles(node)
+      if (!node.isDirectory) return isSupportedFile(node.name)
+      return hasSupportedFiles(node)
     })
     .map(node => {
       if (node.isDirectory && node.children) {
@@ -87,16 +90,29 @@ const FileTreeItem = ({ node, depth, expandedPaths, toggleExpand }: FileTreeItem
         ) : (
           <>
             <span className="w-4 flex-shrink-0" />
-            <svg className="w-4 h-4 text-blue-400 flex-shrink-0" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M14 3v4a1 1 0 001 1h4M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path d="M9 13h6M9 17h4" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
-            </svg>
+            {isPdfFile(node.name) ? (
+              <svg className="w-4 h-4 text-red-400 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M14 3v4a1 1 0 001 1h4M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M8.5 13.5h1m4.5 0h1m-4 3v-3" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-blue-400 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M14 3v4a1 1 0 001 1h4M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M9 13h6M9 17h4" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+              </svg>
+            )}
           </>
         )}
         <span className="truncate">{node.name}</span>

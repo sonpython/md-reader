@@ -3,6 +3,7 @@ import { useEditorStore } from '../../store/editorStore'
 export const StatusBar = () => {
   const { tabs, activeTabId, autoSaveEnabled } = useEditorStore()
   const activeTab = tabs.find(t => t.id === activeTabId)
+  const isPdf = activeTab?.type === 'pdf'
 
   const wordCount = activeTab?.content.split(/\s+/).filter(Boolean).length || 0
   const charCount = activeTab?.content.length || 0
@@ -14,15 +15,17 @@ export const StatusBar = () => {
         {activeTab && (
           <>
             <span>
-              {activeTab.isModified ? '●' : '○'} {activeTab.isModified ? 'Modified' : 'Saved'}
+              {isPdf
+                ? '○ Read-only'
+                : `${activeTab.isModified ? '●' : '○'} ${activeTab.isModified ? 'Modified' : 'Saved'}`}
             </span>
-            <span>Markdown</span>
+            <span>{isPdf ? 'PDF' : 'Markdown'}</span>
           </>
         )}
       </div>
 
       <div className="flex items-center gap-4">
-        {activeTab && (
+        {activeTab && !isPdf && (
           <>
             <span>{lineCount} lines</span>
             <span>{wordCount} words</span>

@@ -11,6 +11,8 @@ import { TabBar } from './components/Editor/TabBar'
 import { MarkdownEditor } from './components/Editor/MarkdownEditor'
 import { SearchReplace } from './components/Editor/SearchReplace'
 import { MarkdownPreview } from './components/Preview/MarkdownPreview'
+import { PdfViewer } from './components/Preview/PdfViewer'
+import { useFileDrop } from './hooks/use-file-drop'
 import clsx from 'clsx'
 
 // Vertical resize handle: 1px line that highlights on hover/drag
@@ -21,14 +23,18 @@ const RESIZE_HANDLE_CLASS = clsx(
 )
 
 function App() {
-  const { sidebarOpen, previewOpen, editorOpen } = useEditorStore()
+  const { sidebarOpen, previewOpen, editorOpen, tabs, activeTabId } = useEditorStore()
   const [explorerCollapsed, setExplorerCollapsed] = useState(false)
 
   useMenuEvents()
   useAutoSave()
   useFileWatcher()
+  useFileDrop()
 
   const sidebarResizable = sidebarOpen && !explorerCollapsed
+
+  const activeTab = tabs.find(t => t.id === activeTabId)
+  const isPdfTab = activeTab?.type === 'pdf'
 
   return (
     <div className="h-screen flex flex-col bg-editor-bg text-editor-text overflow-hidden">
@@ -63,28 +69,34 @@ function App() {
           <Panel id="main" order={2}>
             <main className="h-full flex flex-col overflow-hidden">
               <TabBar />
-              <SearchReplace />
+              {/* Search targets the CodeMirror editor — irrelevant for PDF tabs */}
+              {!isPdfTab && <SearchReplace />}
 
               <div className="flex-1 overflow-hidden">
-                <PanelGroup direction="horizontal" autoSaveId="md-reader-content-v1">
-                  {editorOpen && (
-                    <Panel id="editor" order={1} minSize={20}>
-                      <div className="h-full overflow-hidden">
-                        <MarkdownEditor />
-                      </div>
-                    </Panel>
-                  )}
-                  {editorOpen && previewOpen && (
-                    <PanelResizeHandle className={RESIZE_HANDLE_CLASS} />
-                  )}
-                  {previewOpen && (
-                    <Panel id="preview" order={2} minSize={20}>
-                      <div className="h-full overflow-hidden bg-editor-sidebar">
-                        <MarkdownPreview />
-                      </div>
-                    </Panel>
-                  )}
-                </PanelGroup>
+                {isPdfTab ? (
+                  // PDF tabs take the whole pane, bypassing the editor|preview split
+                  <PdfViewer filePath={activeTab!.filePath!} />
+                ) : (
+                  <PanelGroup direction="horizontal" autoSaveId="md-reader-content-v1">
+                    {editorOpen && (
+                      <Panel id="editor" order={1} minSize={20}>
+                        <div className="h-full overflow-hidden">
+                          <MarkdownEditor />
+                        </div>
+                      </Panel>
+                    )}
+                    {editorOpen && previewOpen && (
+                      <PanelResizeHandle className={RESIZE_HANDLE_CLASS} />
+                    )}
+                    {previewOpen && (
+                      <Panel id="preview" order={2} minSize={20}>
+                        <div className="h-full overflow-hidden bg-editor-sidebar">
+                          <MarkdownPreview />
+                        </div>
+                      </Panel>
+                    )}
+                  </PanelGroup>
+                )}
               </div>
             </main>
           </Panel>

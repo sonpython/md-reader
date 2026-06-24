@@ -13,7 +13,8 @@ export const Header = () => {
       setFileTree(tree)
     }
     for (const tab of tabs) {
-      if (tab.filePath && !tab.isModified) {
+      // PDFs are binary — skip the text reload
+      if (tab.filePath && !tab.isModified && tab.type !== 'pdf') {
         const result = await window.electron.readFile(tab.filePath)
         if (result.success && result.content !== undefined) {
           reloadTabContent(tab.filePath, result.content)

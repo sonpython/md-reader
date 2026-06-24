@@ -6,14 +6,15 @@ A feature-rich Markdown editor desktop application built with Electron and React
 
 - **Multi-tab editor** with syntax highlighting, code folding, line numbers, bracket matching
 - **Live preview** with GitHub Flavored Markdown, Mermaid diagrams, code copy buttons
-- **File explorer** sidebar with tree view, markdown-only filtering, expand/collapse all
+- **File explorer** sidebar with tree view, markdown + PDF filtering, expand/collapse all
+- **PDF viewing** (read-only) via the native viewer — open from sidebar, dialog, drag-drop, or OS double-click
 - **Search & Replace** with regex support, case-sensitive toggle, match counter
 - **File watching** — auto-refreshes file tree and reloads open files on external changes
 - **Auto-save** with 2-second debounce (configurable on/off)
 - **Dark/Light theme** toggle (VS Code-inspired, persisted)
 - **PDF export** with print styling
 - **Cross-platform** — macOS, Windows, Linux
-- **OS file association** — opens `.md`, `.markdown`, `.mdown`, `.mkd`, `.txt` files
+- **OS file association** — opens `.md`, `.markdown`, `.mdown`, `.mkd`, `.txt`, and `.pdf` files
 
 ## Tech Stack
 

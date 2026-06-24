@@ -47,7 +47,8 @@ export const useFileWatcher = () => {
     const cleanup = window.electron.onFileChanged(async (filePath: string) => {
       const state = useEditorStore.getState()
       const tab = state.tabs.find(t => t.filePath === filePath)
-      if (!tab || tab.isModified) return // don't overwrite unsaved user edits
+      // skip unsaved edits and PDF tabs (binary — no text reload)
+      if (!tab || tab.isModified || tab.type === 'pdf') return
 
       const result = await window.electron.readFile(filePath)
       if (result.success && result.content !== undefined) {
